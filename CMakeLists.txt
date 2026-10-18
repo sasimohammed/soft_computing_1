@@ -37,7 +37,8 @@ foreach(test_name
         replacement_tests
         ga_core_tests
         cvrp_tests)
-    add_executable(${test_name} tests/${test_name}.cpp)
+    add_executable(${test_name} tests/${test_name}.cpp
+            tests/solver_tests.cpp)
     target_link_libraries(${test_name} PRIVATE cvrp_lib)
     add_test(NAME ${test_name} COMMAND ${test_name})
 endforeach()
