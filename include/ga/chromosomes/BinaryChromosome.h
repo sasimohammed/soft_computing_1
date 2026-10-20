@@ -2,12 +2,13 @@
 #include <cstddef>
 #include <random>
 #include <stdexcept>
+#include <utility>
+#include <vector>
 #include "ga/Chromosome.h"
 
 namespace ga {
 using BinaryChromosome = Chromosome<int>;
 
-// Describes the representation: fixed length, every gene is 0 or 1.
 class BinaryChromosomeSpec {
 public:
     explicit BinaryChromosomeSpec(std::size_t length) : length_(length) {
@@ -15,14 +16,21 @@ public:
     }
     std::size_t length() const { return length_; }
 
-    // TODO: random 0/1 chromosome of the given length.
-    BinaryChromosome random(std::mt19937&) const {
-        throw std::logic_error("BinaryChromosomeSpec::random TODO");
+    BinaryChromosome random(std::mt19937& rng) const {
+        std::bernoulli_distribution d(0.5);
+        std::vector<int> genes(length_);
+        for (auto& g : genes) g = d(rng) ? 1 : 0;
+        return BinaryChromosome(std::move(genes));
     }
-    // TODO: size == length and every gene in {0,1}.
-    bool isValid(const BinaryChromosome&) const {
-        throw std::logic_error("BinaryChromosomeSpec::isValid TODO");
+
+    bool isValid(const BinaryChromosome& c) const {
+        if (c.size() != length_) return false;
+        for (std::size_t i = 0; i < c.size(); ++i) {
+            if (c[i] != 0 && c[i] != 1) return false;
+        }
+        return true;
     }
+
 private:
     std::size_t length_;
 };

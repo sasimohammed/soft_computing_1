@@ -1,13 +1,15 @@
 #pragma once
+#include <cmath>
 #include <cstddef>
 #include <random>
 #include <stdexcept>
+#include <utility>
+#include <vector>
 #include "ga/Chromosome.h"
 
 namespace ga {
 using FloatChromosome = Chromosome<double>;
 
-// Genes in [lower, upper].
 class FloatChromosomeSpec {
 public:
     FloatChromosomeSpec(std::size_t length, double lower, double upper)
@@ -19,14 +21,22 @@ public:
     double lower() const { return lower_; }
     double upper() const { return upper_; }
 
-    // TODO: uniform random genes in [lower, upper].
-    FloatChromosome random(std::mt19937&) const {
-        throw std::logic_error("FloatChromosomeSpec::random TODO");
+    FloatChromosome random(std::mt19937& rng) const {
+        std::uniform_real_distribution<double> d(lower_, upper_);
+        std::vector<double> genes(length_);
+        for (auto& g : genes) g = d(rng);
+        return FloatChromosome(std::move(genes));
     }
-    // TODO: length and bounds check (reject NaN).
-    bool isValid(const FloatChromosome&) const {
-        throw std::logic_error("FloatChromosomeSpec::isValid TODO");
+
+    bool isValid(const FloatChromosome& c) const {
+        if (c.size() != length_) return false;
+        for (std::size_t i = 0; i < c.size(); ++i) {
+            double g = c[i];
+            if (std::isnan(g) || g < lower_ || g > upper_) return false;
+        }
+        return true;
     }
+
 private:
     std::size_t length_;
     double lower_, upper_;

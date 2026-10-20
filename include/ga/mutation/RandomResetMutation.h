@@ -1,11 +1,12 @@
 #pragma once
 #include <cstddef>
+#include <random>
 #include <stdexcept>
 #include <string>
+#include <type_traits>
 #include "ga/operators/Mutation.h"
 
 namespace ga {
-// Reset genes to a random value in [min,max]. Integer / float / binary (0,1). Do NOT use on permutations.
 template<class Gene>
 class RandomResetMutation : public Mutation<Gene> {
 public:
@@ -16,9 +17,19 @@ public:
             throw std::invalid_argument("perGeneRate must be in [0,1]");
     }
 
-    // TODO: implement.
-    void mutate(Chromosome<Gene>&, std::mt19937&) const override {
-        throw std::logic_error("RandomResetMutation::mutate TODO");
+    void mutate(Chromosome<Gene>& c, std::mt19937& rng) const override {
+        std::bernoulli_distribution apply(perGeneRate_);
+        if constexpr (std::is_integral<Gene>::value) {
+            std::uniform_int_distribution<Gene> value(min_, max_);
+            for (std::size_t i = 0; i < c.size(); ++i) {
+                if (apply(rng)) c[i] = value(rng);
+            }
+        } else {
+            std::uniform_real_distribution<Gene> value(min_, max_);
+            for (std::size_t i = 0; i < c.size(); ++i) {
+                if (apply(rng)) c[i] = value(rng);
+            }
+        }
     }
 
     std::string name() const override { return "RandomReset"; }
